@@ -78,7 +78,7 @@ def resolve_changes(files, old_files):
             return True
     return False
 
-if __name__ == '__main__':
+def run():
     # Parse arguments
     # Check if there are enough arguments
     if len(sys.argv) < 2:
