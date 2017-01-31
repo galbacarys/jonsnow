@@ -30,7 +30,7 @@ Arguments:
             'License :: OSI Approved :: MIT License',
             'Natural Language :: English',
             'Operating System :: OS Independent',
-            'Topic :: Utilities'
+            'Topic :: Utilities',
             'Programming Language :: Python :: 3'
             ],
         keywords='development build buildtools automation',
