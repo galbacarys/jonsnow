@@ -25,17 +25,17 @@ import subprocess
 
 def usage():
     print('''
-{}: Run commands on changes to any file in this directory
+jonsnow: Run commands on changes to any file in this directory
 
 Usage: 
    jonsnow ./fight_white_walkers.sh
    jonsnow -r ../ echo "You know nothing..."
 
 Arguments:
--r, --root PATH: specify the root directory you want {} to format.
+-r, --root PATH: specify the root directory you want jonsnow to format.
                  Defaults to the current working directory.
 --rtp PATH: Set the runtime path of the command you want to execute
-            '''.format(sys.argv[0], sys.argv[0]))
+            ''')
 
 
 def parse_arguments():
