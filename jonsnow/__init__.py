@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # jonsnow.py
-# 
+#
 # Night gathers, and now my watch begins. It shall not end until my death. I
 # shall take no wife, hold no lands, father no children. I shall wear no crowns
 # and win no glory. I shall live and die at my post. I am the sword in the
@@ -23,11 +23,12 @@ import sys
 import time
 import subprocess
 
+
 def usage():
     print('''
 jonsnow: Run commands on changes to any file in this directory
 
-Usage: 
+Usage:
    jonsnow ./fight_white_walkers.sh
    jonsnow -r ../ echo "You know nothing..."
 
@@ -56,12 +57,12 @@ def parse_arguments():
     if '-r' in sys.argv:
         check_path = sys.argv[sys.argv.index('-r')]
         if latest_index <= sys.argv.index('-r'):
-            latest_index = sys.argv.index('-r') + 2 # account for argument body
+            latest_index = sys.argv.index('-r') + 2  # account for argument body
     elif '--root' in sys.argv:
         check_path = sys.argv[sys.argv.index('--root')]
         if latest_index <= sys.argv.index('--root'):
             latest_index = sys.argv.index('--root') + 2
-    
+
     if '--rtp' in sys.argv:
         runtime_path = sys.argv[sys.argv.index('--rtp')]
         if latest_index <= sys.argv.index('--rtp'):
@@ -74,6 +75,7 @@ def parse_arguments():
 
     return (check_path, runtime_path, latest_index, poll_interval)
 
+
 def check_tree(check_path, files):
     ''' Recursively checks for modification time on all files in tree'''
     for fi in os.scandir(check_path):
@@ -81,6 +83,7 @@ def check_tree(check_path, files):
             check_tree(fi.path, files)
         else:
             files[fi.path] = fi.stat().st_mtime
+
 
 def resolve_changes(files, old_files):
     ''' Check if any changes have been made to the file tree.'''
@@ -90,37 +93,45 @@ def resolve_changes(files, old_files):
 
     # Check if any files have been renamed or saved recently
     for filename in old_files:
-        if not filename in files or files[filename] != old_files[filename]:
+        if filename not in files or files[filename] != old_files[filename]:
             return True
     return False
 
+
 def run():
-    # Parse arguments
-    # Check if there are enough arguments
-    if len(sys.argv) < 2:
-        print("No command given!")
-        usage()
-        exit(1)
-    else:
-        # parse the rest of the args
-        check_path, runtime_path, latest_index, poll_freq = parse_arguments()
+    # Run the whole thing in a try/except block to suppress KeyboardInterrupt
+    try:
+        # Parse arguments
+        # Check if there are enough arguments
+        if len(sys.argv) < 2:
+            print("No command given!")
+            usage()
+            exit(1)
+        else:
+            # parse the rest of the args
+            check_path, runtime_path, latest_index, poll_freq = \
+                parse_arguments()
 
-    files = {}
-    if check_path == None:
-        check_path = "./"
-    # Generate the initial tree
-    check_tree(check_path, files)
-    while True:
-        old_files = copy.deepcopy(files)
-        time.sleep(poll_freq)
+        files = {}
+        if check_path is None:
+            check_path = "./"
+        # Generate the initial tree
         check_tree(check_path, files)
-        if resolve_changes(files, old_files):
-            proc = subprocess.Popen(
-                    sys.argv[latest_index:],
-                    cwd=runtime_path)
-            retval = proc.wait()
-            if retval != 0:
-                print("Subprocess command failed!")
-        
-
-
+        while True:
+            old_files = copy.deepcopy(files)
+            time.sleep(poll_freq)
+            check_tree(check_path, files)
+            if resolve_changes(files, old_files):
+                # Yes this is *technically* a security risk, but realistically
+                # it's mostly a moot point since the user is providing their own
+                # command to run here; it's not my problem what the user decides
+                # to do.
+                proc = subprocess.Popen(
+                        sys.argv[latest_index:],
+                        cwd=runtime_path, shell=True)
+                retval = proc.wait()
+                if retval != 0:
+                    print("Subprocess command failed!")
+    except KeyboardInterrupt:
+        print("Exiting...")
+        sys.exit(0)
